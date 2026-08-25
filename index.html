@@ -12,7 +12,6 @@
         .join-btn { background: #4a69bd; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: bold; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
         .join-btn:hover { background: #3c559c; transform: translateY(-2px); }
 
-        /* 숨김 유틸리티 클래스 (SPA 뷰 전환용) */
         .hidden { display: none !important; }
 
         /* --- 뷰 1: 캐릭터 선택 그리드 --- */
@@ -41,7 +40,12 @@
         
         .card-body { margin-bottom: 15px; line-height: 1.6; color: #555; background: #fafafa; padding: 10px; border-radius: 5px; border-left: 3px solid #4a69bd; }
         .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #888; }
-        .upvote-btn { background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        
+        /* 추천 버튼 상태별 디자인 */
+        .upvote-btn { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .upvote-btn:hover { background: #ff6b81; }
+        .upvote-btn:disabled { background: #ced6e0; cursor: not-allowed; color: #747d8c; }
+        .upvote-btn.voted { background: #2ed573; cursor: not-allowed; }
 
         /* 팝업(Modal) CSS */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
@@ -92,18 +96,13 @@
         </div>
     </div>
 
-    <!-- 뷰 2: 특정 캐릭터 팁 게시판 화면 (초기엔 숨김) -->
+    <!-- 뷰 2: 특정 캐릭터 팁 게시판 화면 -->
     <div id="viewTips" class="hidden">
-        
-        <!-- 선택된 캐릭터 정보 간판 & 뒤로 가기 -->
         <div class="selected-char-header">
             <button id="backBtn" class="back-btn">← 다른 실험체 고르기</button>
-            <div class="selected-char-info" id="selectedCharInfo">
-                <!-- 자바스크립트로 이미지와 이름이 삽입됨 -->
-            </div>
+            <div class="selected-char-info" id="selectedCharInfo"></div>
         </div>
 
-        <!-- 필터 영역 (내 픽은 이미 고정되었으므로 무기와 상대 검색만 노출) -->
         <div class="filter-container">
             <select id="myWeapon">
                 <option value="">내 무기 전체</option>
@@ -114,29 +113,27 @@
             </select>
         </div>
 
-        <!-- 팁 카드 게시판 -->
-        <div class="tips-board" id="tipsBoard">
-            <!-- 자바스크립트로 카드가 삽입됨 -->
-        </div>
+        <div class="tips-board" id="tipsBoard"></div>
     </div>
 
     <script>
-        // 3개의 데이터베이스 CSV 링크
+        // DB 연결 주소 (자동 삽입 완료)
         const TIPS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=356509267&single=true&output=csv";
         const USERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=1804712494&single=true&output=csv";
         const CHARACTERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=31606646&single=true&output=csv";
         
+        // GAS 추천 서버 웹 앱 URL (자동 삽입 완료)
+        const GAS_UPVOTE_URL = "https://script.google.com/macros/s/AKfycbzdDl_iO4renPvxUoPgppBUcX4SMtvNSoimBkbj0E5Rq0PRsDCFnzq8Xr_AaZ7yZDlq/exec";
+        
         let tipsData = [];
         let charactersData = [];
-        let currentMyPick = ""; // 유저가 선택한 현재 실험체 상태 저장
+        let currentMyPick = "";
 
-        // 모달 제어
         const modal = document.getElementById("pipelineModal");
         document.getElementById("openModalBtn").onclick = () => modal.style.display = "block";
         document.getElementById("closeModalBtn").onclick = () => modal.style.display = "none";
         window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
 
-        // CSV 파서
         function parseCSV(text) {
             let rows = [], row = [], inQuotes = false, val = '';
             for (let i = 0; i < text.length; i++) {
@@ -151,7 +148,6 @@
             return rows;
         }
 
-        // 데이터 3종 동시 로드
         async function loadData() {
             try {
                 const [tipsRes, usersRes, charsRes] = await Promise.all([
@@ -162,7 +158,6 @@
                     tipsRes.text(), usersRes.text(), charsRes.text()
                 ]);
 
-                // 1. 유저 티어 맵핑
                 const usersRaw = parseCSV(usersText);
                 const userHeaders = usersRaw[0].map(h => h.trim());
                 const userMap = {};
@@ -172,7 +167,6 @@
                     if (obj.Virtual_Nickname) userMap[obj.Virtual_Nickname] = obj.Tier; 
                 });
 
-                // 2. 팁 데이터 파싱 (티어 병합)
                 const tipsRaw = parseCSV(tipsText);
                 const tipsHeaders = tipsRaw[0].map(h => h.trim());
                 tipsData = tipsRaw.slice(1).map(row => {
@@ -182,7 +176,6 @@
                     return obj;
                 }).filter(tip => tip.My_Pick); 
 
-                // 3. 캐릭터 목록 파싱
                 const charsRaw = parseCSV(charsText);
                 const charsHeaders = charsRaw[0].map(h => h.trim());
                 charactersData = charsRaw.slice(1).map(row => {
@@ -191,7 +184,6 @@
                     return obj;
                 }).filter(c => c.Character_Name);
 
-                // 첫 화면 렌더링
                 renderCharacterGrid();
 
             } catch (error) {
@@ -199,21 +191,15 @@
             }
         }
 
-        // --- 뷰 1: 캐릭터 그리드 그리기 ---
         function renderCharacterGrid() {
             const grid = document.getElementById('characterGrid');
             grid.innerHTML = '';
-            
-            // 이름순으로 정렬
             charactersData.sort((a, b) => a.Character_Name.localeCompare(b.Character_Name));
 
             charactersData.forEach(char => {
                 const card = document.createElement('div');
                 card.className = 'char-card';
-                // 캐릭터 클릭 시 SPA 전환 로직 호출
                 card.onclick = () => selectCharacter(char);
-                
-                // 이미지가 엑박 뜰 경우를 대비한 onerror 처리
                 card.innerHTML = `
                     <img src="${char.Image_URL || ''}" class="char-image" onerror="this.src='https://via.placeholder.com/70?text=No+Img'">
                     <div class="char-name">${char.Character_Name}</div>
@@ -222,15 +208,11 @@
             });
         }
 
-        // --- SPA 뷰 전환 (메인 -> 상세 게시판) ---
         function selectCharacter(charObj) {
-            currentMyPick = charObj.Character_Name; // 전역 변수에 현재 실험체 기억
-
-            // 화면 전환 (Hide & Show)
+            currentMyPick = charObj.Character_Name;
             document.getElementById('viewCharacters').classList.add('hidden');
             document.getElementById('viewTips').classList.remove('hidden');
 
-            // 상단 간판 정보 갱신
             document.getElementById('selectedCharInfo').innerHTML = `
                 <span>${charObj.Character_Name} 공략 게시판</span>
                 <img src="${charObj.Image_URL || ''}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'">
@@ -240,47 +222,73 @@
             renderCards();
         }
 
-        // --- SPA 뷰 전환 (상세 게시판 -> 메인) ---
         document.getElementById('backBtn').onclick = () => {
-            currentMyPick = ""; // 초기화
+            currentMyPick = "";
             document.getElementById('viewTips').classList.add('hidden');
             document.getElementById('viewCharacters').classList.remove('hidden');
         };
 
-        // --- 뷰 2: 필터 자동 채우기 ---
         function populateFilters() {
-            // 현재 고른 캐릭터(currentMyPick)에 해당하는 팁들만 기반으로 무기 목록 추출
             const relatedTips = tipsData.filter(t => t.My_Pick === currentMyPick);
-            
             const myWeapons = [...new Set(relatedTips.map(t => t.My_Weapon).filter(Boolean))].sort();
             const enemyWeapons = [...new Set(relatedTips.map(t => t.Enemy_Weapon).filter(Boolean))].sort();
             
             const myWeaponSelect = document.getElementById('myWeapon');
-            myWeaponSelect.innerHTML = '<option value="">내 무기 전체</option>'; // 초기화
+            myWeaponSelect.innerHTML = '<option value="">내 무기 전체</option>';
             myWeapons.forEach(w => myWeaponSelect.add(new Option(w, w)));
             
             const enemyWeaponSelect = document.getElementById('enemyWeapon');
-            enemyWeaponSelect.innerHTML = '<option value="">상대 무기 전체</option>'; // 초기화
+            enemyWeaponSelect.innerHTML = '<option value="">상대 무기 전체</option>';
             enemyWeapons.forEach(w => enemyWeaponSelect.add(new Option(w, w)));
             
-            // 검색창 초기화
             document.getElementById('searchEnemy').value = '';
         }
 
-        // --- 뷰 2: 팁 카드 렌더링 ---
+        // 추천 버튼 클릭 시 실행되는 비동기 통신 로직
+        async function handleUpvote(buttonElement, timestamp, currentUpvotes) {
+            // 1. 클릭 즉시 버튼 비활성화 (시각적 피드백)
+            buttonElement.disabled = true;
+            buttonElement.innerText = '⏳ 처리중...';
+
+            try {
+                // 2. 구글 앱스 스크립트로 추천 요청 전송
+                const response = await fetch(`${GAS_UPVOTE_URL}?id=${encodeURIComponent(timestamp)}`);
+                const result = await response.text();
+
+                if (result === "성공") {
+                    // 3. 통신 성공 시 로컬 스토리지에 도장 찍기
+                    localStorage.setItem('upvoted_' + timestamp, 'true');
+                    
+                    // 4. 화면 및 내부 데이터 즉시 업데이트
+                    const newUpvotes = Number(currentUpvotes) + 1;
+                    buttonElement.innerText = `👍 추천 ${newUpvotes}`;
+                    buttonElement.classList.add('voted');
+                    
+                    const tip = tipsData.find(t => t.Timestamp === timestamp);
+                    if(tip) tip.Upvotes = newUpvotes;
+                    
+                } else {
+                    alert('추천 처리 중 문제가 발생했습니다.');
+                    buttonElement.disabled = false;
+                    buttonElement.innerText = `👍 추천 ${currentUpvotes}`;
+                }
+            } catch (error) {
+                alert('네트워크 오류가 발생했습니다.');
+                buttonElement.disabled = false;
+                buttonElement.innerText = `👍 추천 ${currentUpvotes}`;
+            }
+        }
+
         function renderCards() {
             const myWeaponVal = document.getElementById('myWeapon').value;
             const searchVal = document.getElementById('searchEnemy').value.toLowerCase();
             const enemyWeaponVal = document.getElementById('enemyWeapon').value;
             
             const filtered = tipsData.filter(tip => {
-                // 내 픽은 반드시 currentMyPick과 일치해야 함
                 if (tip.My_Pick !== currentMyPick) return false;
-                
                 const matchMyWeapon = !myWeaponVal || tip.My_Weapon === myWeaponVal;
                 const matchEnemy = tip.Enemy_Pick && tip.Enemy_Pick.toLowerCase().includes(searchVal);
                 const matchEnemyWeapon = !enemyWeaponVal || tip.Enemy_Weapon === enemyWeaponVal;
-                
                 return matchMyWeapon && matchEnemy && matchEnemyWeapon;
             });
             
@@ -300,6 +308,12 @@
                 const enemyText = (tip.Enemy_Weapon ? tip.Enemy_Weapon + ' ' : '') + (tip.Enemy_Pick || '알 수 없음');
                 const authorName = tip.Virtual_Nickname || '익명의 실험체';
 
+                // 로컬 스토리지를 검사하여 이미 추천한 팁인지 확인
+                const isVoted = localStorage.getItem('upvoted_' + tip.Timestamp);
+                const btnClass = isVoted ? 'upvote-btn voted' : 'upvote-btn';
+                const btnDisabled = isVoted ? 'disabled' : '';
+                const btnText = isVoted ? `👍 추천 완료 ${tip.Upvotes || 0}` : `👍 추천 ${tip.Upvotes || 0}`;
+
                 card.innerHTML = `
                     <div class="card-header">
                         <span>[${myText}] vs [${enemyText}]</span>
@@ -311,19 +325,24 @@
                     <div class="card-body">${(tip.Tip_Content || '').replace(/\n/g, '<br>')}</div>
                     <div class="card-footer">
                         <span>패치: ${tip.Patch_Version || '알 수 없음'}</span>
-                        <button class="upvote-btn">👍 추천 ${tip.Upvotes || 0}</button>
+                        <button class="${btnClass}" ${btnDisabled}>${btnText}</button>
                     </div>
                 `;
+                
+                // 생성된 버튼에 추천 로직 연결
+                const upvoteBtn = card.querySelector('button');
+                if (!isVoted) {
+                    upvoteBtn.onclick = () => handleUpvote(upvoteBtn, tip.Timestamp, tip.Upvotes || 0);
+                }
+                
                 board.appendChild(card);
             });
         }
 
-        // 필터 이벤트 리스너 연결
         document.getElementById('myWeapon').addEventListener('change', renderCards);
         document.getElementById('searchEnemy').addEventListener('input', renderCards);
         document.getElementById('enemyWeapon').addEventListener('change', renderCards);
 
-        // 실행
         loadData();
     </script>
 </body>
