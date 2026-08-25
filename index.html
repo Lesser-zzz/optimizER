@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptimizER - 카운터 상대법 검색</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .filter-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-container input, .filter-container select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; outline: none; }
+        .tips-board { display: flex; flex-direction: column; gap: 15px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .card-header { font-weight: bold; margin-bottom: 10px; color: #333; }
+        .card-body { margin-bottom: 15px; line-height: 1.5; color: #555; }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #888; }
+        .upvote-btn { background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🛡️ OptimizER</h1>
+        <p>상대 실험체를 검색하고 맞춤형 카운터 팁을 확인하세요.</p>
+    </div>
+
+    <!-- 필터 영역 (상대 검색 -> 내 무기 -> 상대 무기) -->
+    <div class="filter-container">
+        <input type="text" id="searchEnemy" placeholder="상대 실험체 검색 (예: 수아)">
+        <select id="myWeapon">
+            <option value="">내 무기 선택</option>
+        </select>
+        <select id="enemyWeapon">
+            <option value="">상대 무기 선택</option>
+        </select>
+    </div>
+
+    <!-- 공략 팁 카드가 렌더링될 게시판 -->
+    <div class="tips-board" id="tipsBoard">
+        <!-- 임시 더미 카드 -->
+        <div class="card">
+            <div class="card-header">[방망이 매그너스] vs [망치 수아]</div>
+            <div class="card-body">W 진입 타이밍을 조심하고, 벽꿍 각을 내주지 마세요.</div>
+            <div class="card-footer">
+                <span>작성자: 숨김 처리 / 패치: 1.28</span>
+                <button class="upvote-btn">👍 추천 0</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
