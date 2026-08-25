@@ -14,14 +14,12 @@
 
         .hidden { display: none !important; }
 
-        /* --- 뷰 1: 캐릭터 선택 그리드 --- */
         .character-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; max-width: 1000px; margin: 0 auto; }
         .char-card { background: white; padding: 15px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .char-card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); border: 1px solid #4a69bd; }
         .char-image { width: 70px; height: 70px; object-fit: cover; border-radius: 35px; margin-bottom: 10px; border: 2px solid #eee; }
         .char-name { font-weight: bold; color: #333; font-size: 0.95em; }
 
-        /* --- 뷰 2: 팁 게시판 --- */
         .selected-char-header { max-width: 800px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .selected-char-info { display: flex; align-items: center; gap: 15px; font-size: 1.2em; font-weight: bold; color: #333; }
         .selected-char-info img { width: 50px; height: 50px; border-radius: 25px; object-fit: cover; border: 2px solid #4a69bd; }
@@ -29,7 +27,7 @@
         .back-btn:hover { background: #718093; }
 
         .filter-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-container input, .filter-container select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; outline: none; }
+        .filter-container input, .filter-container select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; outline: none; font-family: inherit; }
         
         .tips-board { display: flex; flex-direction: column; gap: 15px; max-width: 800px; margin: 0 auto; }
         .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
@@ -41,13 +39,11 @@
         .card-body { margin-bottom: 15px; line-height: 1.6; color: #555; background: #fafafa; padding: 10px; border-radius: 5px; border-left: 3px solid #4a69bd; }
         .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #888; }
         
-        /* 추천 버튼 상태별 디자인 */
         .upvote-btn { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .upvote-btn:hover { background: #ff6b81; }
         .upvote-btn:disabled { background: #ced6e0; cursor: not-allowed; color: #747d8c; }
         .upvote-btn.voted { background: #2ed573; cursor: not-allowed; }
 
-        /* 팝업(Modal) CSS */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
         .modal-content { background-color: #fff; margin: 10% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; position: relative; line-height: 1.6; }
         .close-btn { position: absolute; right: 20px; top: 15px; font-size: 24px; font-weight: bold; cursor: pointer; color: #aaa; }
@@ -67,7 +63,6 @@
         <button id="openModalBtn" class="join-btn">💡 새로운 공략 제보 or 공략에 대한 토론/피드백을 원한다면?</button>
     </div>
 
-    <!-- 팝업 모달 -->
     <div id="pipelineModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" id="closeModalBtn">&times;</span>
@@ -88,7 +83,6 @@
         </div>
     </div>
 
-    <!-- 뷰 1: 캐릭터 선택 메인 화면 -->
     <div id="viewCharacters">
         <h2 style="text-align:center; color:#333; margin-bottom: 20px;">어떤 실험체의 공략을 찾으시나요?</h2>
         <div class="character-grid" id="characterGrid">
@@ -96,7 +90,6 @@
         </div>
     </div>
 
-    <!-- 뷰 2: 특정 캐릭터 팁 게시판 화면 -->
     <div id="viewTips" class="hidden">
         <div class="selected-char-header">
             <button id="backBtn" class="back-btn">← 다른 실험체 고르기</button>
@@ -104,12 +97,14 @@
         </div>
 
         <div class="filter-container">
-            <select id="myWeapon">
-                <option value="">내 무기 전체</option>
-            </select>
+            <select id="myWeapon"><option value="">내 무기 전체</option></select>
             <input type="text" id="searchEnemy" placeholder="상대 실험체 검색 (예: 수아)">
-            <select id="enemyWeapon">
-                <option value="">상대 무기 전체</option>
+            <select id="enemyWeapon"><option value="">상대 무기 전체</option></select>
+            <!-- 정렬 및 패치 버전 드롭다운 추가 -->
+            <select id="patchVersion"><option value="">패치 전체</option></select>
+            <select id="sortType">
+                <option value="latest">✨ 최신순</option>
+                <option value="upvotes">🔥 추천순</option>
             </select>
         </div>
 
@@ -117,13 +112,10 @@
     </div>
 
     <script>
-        // DB 연결 주소 (자동 삽입 완료)
         const TIPS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=356509267&single=true&output=csv";
         const USERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=1804712494&single=true&output=csv";
         const CHARACTERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=31606646&single=true&output=csv";
-        
-        // GAS 추천 서버 웹 앱 URL (자동 삽입 완료)
-        const GAS_UPVOTE_URL = "https://script.google.com/macros/s/AKfycbxvo1UCwYN-OUUc66cm2SnCbw_eE8bwjwNqV2k5YEfHN31aK-31-8opOetLEkE9BAU/exec";
+        const GAS_UPVOTE_URL = "https://script.google.com/macros/s/AKfycbzdDl_iO4renPvxUoPgppBUcX4SMtvNSoimBkbj0E5Rq0PRsDCFnzq8Xr_AaZ7yZDlq/exec";
         
         let tipsData = [];
         let charactersData = [];
@@ -230,8 +222,12 @@
 
         function populateFilters() {
             const relatedTips = tipsData.filter(t => t.My_Pick === currentMyPick);
+            
             const myWeapons = [...new Set(relatedTips.map(t => t.My_Weapon).filter(Boolean))].sort();
             const enemyWeapons = [...new Set(relatedTips.map(t => t.Enemy_Weapon).filter(Boolean))].sort();
+            
+            // 패치 버전 데이터 추출 및 정렬 (최신 패치가 위로 오도록 역순 정렬)
+            const patchVersions = [...new Set(relatedTips.map(t => t.Patch_Version).filter(Boolean))].sort((a, b) => b.localeCompare(a));
             
             const myWeaponSelect = document.getElementById('myWeapon');
             myWeaponSelect.innerHTML = '<option value="">내 무기 전체</option>';
@@ -241,32 +237,30 @@
             enemyWeaponSelect.innerHTML = '<option value="">상대 무기 전체</option>';
             enemyWeapons.forEach(w => enemyWeaponSelect.add(new Option(w, w)));
             
+            const patchSelect = document.getElementById('patchVersion');
+            patchSelect.innerHTML = '<option value="">패치 전체</option>';
+            patchVersions.forEach(v => patchSelect.add(new Option(v, v)));
+            
             document.getElementById('searchEnemy').value = '';
+            document.getElementById('sortType').value = 'latest';
         }
 
-        // 추천 버튼 클릭 시 실행되는 비동기 통신 로직
         async function handleUpvote(buttonElement, timestamp, currentUpvotes) {
-            // 1. 클릭 즉시 버튼 비활성화 (시각적 피드백)
             buttonElement.disabled = true;
             buttonElement.innerText = '⏳ 처리중...';
 
             try {
-                // 2. 구글 앱스 스크립트로 추천 요청 전송
                 const response = await fetch(`${GAS_UPVOTE_URL}?id=${encodeURIComponent(timestamp)}`);
                 const result = await response.text();
 
                 if (result === "성공") {
-                    // 3. 통신 성공 시 로컬 스토리지에 도장 찍기
                     localStorage.setItem('upvoted_' + timestamp, 'true');
-                    
-                    // 4. 화면 및 내부 데이터 즉시 업데이트
                     const newUpvotes = Number(currentUpvotes) + 1;
-                    buttonElement.innerText = `👍 추천 ${newUpvotes}`;
+                    buttonElement.innerText = `👍 추천 완료 ${newUpvotes}`;
                     buttonElement.classList.add('voted');
                     
                     const tip = tipsData.find(t => t.Timestamp === timestamp);
                     if(tip) tip.Upvotes = newUpvotes;
-                    
                 } else {
                     alert('추천 처리 중 문제가 발생했습니다.');
                     buttonElement.disabled = false;
@@ -283,13 +277,28 @@
             const myWeaponVal = document.getElementById('myWeapon').value;
             const searchVal = document.getElementById('searchEnemy').value.toLowerCase();
             const enemyWeaponVal = document.getElementById('enemyWeapon').value;
+            const patchVal = document.getElementById('patchVersion').value;
+            const sortType = document.getElementById('sortType').value;
             
-            const filtered = tipsData.filter(tip => {
+            // 1. 조건에 맞게 필터링
+            let filtered = tipsData.filter(tip => {
                 if (tip.My_Pick !== currentMyPick) return false;
                 const matchMyWeapon = !myWeaponVal || tip.My_Weapon === myWeaponVal;
                 const matchEnemy = tip.Enemy_Pick && tip.Enemy_Pick.toLowerCase().includes(searchVal);
                 const matchEnemyWeapon = !enemyWeaponVal || tip.Enemy_Weapon === enemyWeaponVal;
-                return matchMyWeapon && matchEnemy && matchEnemyWeapon;
+                const matchPatch = !patchVal || tip.Patch_Version === patchVal;
+                return matchMyWeapon && matchEnemy && matchEnemyWeapon && matchPatch;
+            });
+            
+            // 2. 정렬 (Sort) 적용
+            filtered.sort((a, b) => {
+                if (sortType === 'upvotes') {
+                    // 추천순: 숫자가 높은 순서대로
+                    return (Number(b.Upvotes) || 0) - (Number(a.Upvotes) || 0);
+                } else {
+                    // 최신순: 타임스탬프 기준 역순 (최신 시간이 위로)
+                    return new Date(b.Timestamp) - new Date(a.Timestamp);
+                }
             });
             
             const board = document.getElementById('tipsBoard');
@@ -308,7 +317,6 @@
                 const enemyText = (tip.Enemy_Weapon ? tip.Enemy_Weapon + ' ' : '') + (tip.Enemy_Pick || '알 수 없음');
                 const authorName = tip.Virtual_Nickname || '익명의 실험체';
 
-                // 로컬 스토리지를 검사하여 이미 추천한 팁인지 확인
                 const isVoted = localStorage.getItem('upvoted_' + tip.Timestamp);
                 const btnClass = isVoted ? 'upvote-btn voted' : 'upvote-btn';
                 const btnDisabled = isVoted ? 'disabled' : '';
@@ -329,7 +337,6 @@
                     </div>
                 `;
                 
-                // 생성된 버튼에 추천 로직 연결
                 const upvoteBtn = card.querySelector('button');
                 if (!isVoted) {
                     upvoteBtn.onclick = () => handleUpvote(upvoteBtn, tip.Timestamp, tip.Upvotes || 0);
@@ -339,9 +346,12 @@
             });
         }
 
+        // 새롭게 추가된 정렬/필터 이벤트 리스너 연결
         document.getElementById('myWeapon').addEventListener('change', renderCards);
         document.getElementById('searchEnemy').addEventListener('input', renderCards);
         document.getElementById('enemyWeapon').addEventListener('change', renderCards);
+        document.getElementById('patchVersion').addEventListener('change', renderCards);
+        document.getElementById('sortType').addEventListener('change', renderCards);
 
         loadData();
     </script>
