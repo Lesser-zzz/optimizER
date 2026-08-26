@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OptimizER - 카운터 상대법 및 공략 검색</title>
+    <title>observER - 카운터 상대법 및 공략 검색</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -68,7 +68,11 @@
         
         .one-line-review { max-width: 800px; margin: 0 auto 20px auto; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 8px; border-left: 4px solid #f1c40f; }
         .review-badge { font-size: 0.8em; background: #f1c40f; color: #333; padding: 3px 8px; border-radius: 4px; font-weight: bold; align-self: flex-start; }
-        .review-content { font-size: 1.1em; font-weight: 500; font-style: italic; }
+        .review-content { font-size: 1.05em; font-weight: 500; font-style: italic; display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto; }
+        
+        /* 스크롤바 커스텀 */
+        .review-content::-webkit-scrollbar { width: 6px; }
+        .review-content::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.3); border-radius: 10px; }
 
         /* 서브 네비게이션 탭 (상대법 vs 공략) */
         .sub-nav-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
@@ -109,7 +113,7 @@
 <body>
 
     <div class="header">
-        <h1>🛡️ OptimizER</h1>
+        <h1>🛡️ observER</h1>
         <p>이터널 리턴을 정복하기 위한 모든 공략과 상성 데이터</p>
         <button id="openModalBtn" class="join-btn">💡 새로운 공략 제보 or 공략에 대한 토론/피드백을 원한다면?</button>
     </div>
@@ -170,7 +174,9 @@
 
             <div class="one-line-review">
                 <span class="review-badge">👑 이터니티/데미갓 전용 한줄평</span>
-                <span class="review-content" id="charReviewText">"아직 등록된 랭커 한줄평이 없습니다."</span>
+                <div class="review-content" id="charReviewText">
+                    <!-- 자바스크립트로 한줄평 전체가 렌더링됨 -->
+                </div>
             </div>
 
             <div class="sub-nav-menu">
@@ -222,7 +228,7 @@
         let charactersData = [];
         let guidesData = [];
         let currentMyPick = "";
-        let userMap = {}; // 🔥 글로벌 변수 처리 완료
+        let userMap = {}; 
 
         function switchTab(targetId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -303,12 +309,8 @@
                 }).filter(g => g.Guide_Type);
 
                 renderCharacterGrid();
-                
-                // 뉴비 공략 및 심화 공략 렌더링
                 renderGuideCards('newbieBoard', guidesData.filter(g => g.Guide_Type === '뉴비'));
                 renderGuideCards('advancedBoard', guidesData.filter(g => g.Guide_Type === '심화'));
-
-                // 🔥 명예의 전당 렌더링 호출
                 renderHallOfFame();
 
             } catch (error) {
@@ -319,7 +321,6 @@
         function renderHallOfFame() {
             const authorUpvotes = {};
             
-            // 1. Tips와 Guides 시트를 모두 순회하며 닉네임별 누적 추천수(Credit) 계산
             const aggregateUpvotes = (dataArray) => {
                 dataArray.forEach(item => {
                     const author = item.Virtual_Nickname;
@@ -332,14 +333,13 @@
             aggregateUpvotes(tipsData);
             aggregateUpvotes(guidesData);
 
-            // 2. 객체를 배열로 변환 후 내림차순 정렬하여 상위 5명 추출
             const sortedAuthors = Object.keys(authorUpvotes)
                 .map(author => ({
                     name: author,
                     upvotes: authorUpvotes[author],
                     tier: userMap[author] || '미인증'
                 }))
-                .filter(a => a.upvotes > 0) // 추천 수가 1 이상인 유저만 랭크인
+                .filter(a => a.upvotes > 0)
                 .sort((a, b) => b.upvotes - a.upvotes)
                 .slice(0, 5);
 
@@ -351,7 +351,6 @@
                 return;
             }
 
-            // 3. 순위별 HTML 렌더링
             sortedAuthors.forEach((author, index) => {
                 const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span>${index + 1}</span>`;
                 const li = document.createElement('li');
@@ -394,16 +393,20 @@
                 <img src="${charObj.Image_URL || ''}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'">
             `;
 
-            // 🔥 Guides 시트에서 해당 실험체의 가장 최근 '한줄평' 가져오기 로직 추가
+            // 🔥 한줄평 복수 렌더링으로 변경
             const charReviews = guidesData.filter(g => g.Guide_Type === '한줄평' && g.Target_Char === currentMyPick);
             charReviews.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-            const latestReview = charReviews.length > 0 ? charReviews[0] : null;
-
-            const reviewText = latestReview 
-                ? `"${latestReview.Content}" - ✍️ <strong>${latestReview.Virtual_Nickname || '익명'}</strong> <span style="font-size:0.8em; color:#ccc;">(v${latestReview.Patch_Version || '알 수 없음'})</span>` 
-                : '"아직 등록된 랭커 한줄평이 없습니다."';
+            
+            if (charReviews.length > 0) {
+                // 여러 개의 한줄평을 점선으로 구분하여 렌더링
+                const reviewsHtml = charReviews.map(r => 
+                    `<div style="padding: 4px 0;">"${r.Content}" - ✍️ <strong>${r.Virtual_Nickname || '익명'}</strong> <span style="font-size:0.8em; color:#ccc;">(v${r.Patch_Version || '알 수 없음'})</span></div>`
+                ).join('<div style="border-bottom: 1px dashed rgba(255,255,255,0.2); margin: 4px 0;"></div>');
                 
-            document.getElementById('charReviewText').innerHTML = reviewText;
+                document.getElementById('charReviewText').innerHTML = reviewsHtml;
+            } else {
+                document.getElementById('charReviewText').innerHTML = '"아직 등록된 랭커 한줄평이 없습니다."';
+            }
 
             const defaultSubBtn = document.querySelector('.sub-nav-btn');
             switchSubTab('matchupSection', defaultSubBtn);
@@ -411,7 +414,6 @@
             populateFilters();
             renderCards(); 
             
-            // 해당 실험체 공략 게시판 렌더링
             const charGuides = guidesData.filter(g => g.Guide_Type === '실험체' && g.Target_Char === currentMyPick);
             renderGuideCards('charGuideBoard', charGuides);
         }
@@ -467,7 +469,6 @@
                         if(guide) guide.Upvotes = newUpvotes;
                     }
                     
-                    // 추천 시 명예의 전당 점수도 즉각 반영을 원한다면 렌더링 재호출
                     renderHallOfFame();
                     
                 } else {
