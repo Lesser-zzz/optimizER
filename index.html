@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OptimizER - 카운터 상대법 검색</title>
+    <title>OptimizER - 카운터 상대법 및 공략 검색</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -36,6 +36,11 @@
         .one-line-review { max-width: 800px; margin: 0 auto 20px auto; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 8px; border-left: 4px solid #f1c40f; }
         .review-badge { font-size: 0.8em; background: #f1c40f; color: #333; padding: 3px 8px; border-radius: 4px; font-weight: bold; align-self: flex-start; }
         .review-content { font-size: 1.1em; font-weight: 500; font-style: italic; }
+
+        /* 🔥 서브 네비게이션 탭 (상대법 vs 공략) */
+        .sub-nav-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .sub-nav-btn { padding: 8px 18px; border: none; border-radius: 20px; font-size: 0.95em; font-weight: bold; cursor: pointer; background: #ddd; color: #555; transition: 0.2s; }
+        .sub-nav-btn.active { background: #2c3e50; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
 
         /* 필터 및 카드 */
         .filter-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -103,7 +108,7 @@
 
     <!-- 네비게이션 탭 -->
     <div class="nav-menu">
-        <button class="nav-btn active" onclick="switchTab('viewTab1', this)">⚔️ 상대법 검색</button>
+        <button class="nav-btn active" onclick="switchTab('viewTab1', this)">⚔️ 실험체별 상대법 및 공략</button>
         <button class="nav-btn" onclick="switchTab('viewNewbie', this)">🌱 뉴비 추천 공략</button>
         <button class="nav-btn" onclick="switchTab('viewAdvanced', this)">👑 최상위 심화 공략</button>
     </div>
@@ -112,7 +117,7 @@
     <div id="viewTab1" class="tab-content">
         <!-- 메인 화면: 실험체 선택 -->
         <div id="viewCharacters">
-            <h2 style="text-align:center; color:#333; margin-bottom: 20px;">어떤 실험체의 상대법을 찾으시나요?</h2>
+            <!-- 기존의 안내 텍스트(H2) 삭제 완료 -->
             <div class="character-grid" id="characterGrid">
                 <div style="text-align: center; color: #888; grid-column: 1 / -1;">데이터를 불러오는 중입니다...</div>
             </div>
@@ -131,19 +136,36 @@
                 <span class="review-content" id="charReviewText">"아직 등록된 랭커 한줄평이 없습니다."</span>
             </div>
 
-            <!-- 정렬 및 필터 -->
-            <div class="filter-container">
-                <select id="myWeapon"><option value="">내 무기 전체</option></select>
-                <input type="text" id="searchEnemy" placeholder="상대 실험체 검색 (예: 수아)">
-                <select id="enemyWeapon"><option value="">상대 무기 전체</option></select>
-                <select id="patchVersion"><option value="">패치 전체</option></select>
-                <select id="sortType">
-                    <option value="latest">✨ 최신순</option>
-                    <option value="upvotes">🔥 추천순</option>
-                </select>
+            <!-- 🔥 서브 네비게이션 탭 (해당 실험체의 상대법 vs 공략) -->
+            <div class="sub-nav-menu">
+                <button class="sub-nav-btn active" onclick="switchSubTab('matchupSection', this)">⚔️ 상대법 게시판</button>
+                <button class="sub-nav-btn" onclick="switchSubTab('guideSection', this)">📜 공략 게시판</button>
             </div>
 
-            <div class="tips-board" id="tipsBoard"></div>
+            <!-- 서브 탭 1: 상대법 게시판 (기존 필터 및 팁 리스트) -->
+            <div id="matchupSection" class="sub-tab-content">
+                <div class="filter-container">
+                    <select id="myWeapon"><option value="">내 무기 전체</option></select>
+                    <input type="text" id="searchEnemy" placeholder="상대 실험체 검색 (예: 수아)">
+                    <select id="enemyWeapon"><option value="">상대 무기 전체</option></select>
+                    <select id="patchVersion"><option value="">패치 전체</option></select>
+                    <select id="sortType">
+                        <option value="latest">✨ 최신순</option>
+                        <option value="upvotes">🔥 추천순</option>
+                    </select>
+                </div>
+                <div class="tips-board" id="tipsBoard"></div>
+            </div>
+
+            <!-- 서브 탭 2: 공략 게시판 (임시) -->
+            <div id="guideSection" class="sub-tab-content hidden">
+                <div class="tips-board">
+                    <div class="card" style="text-align: center; color: #888; padding: 40px;">
+                        <h2>📜 실험체 전용 공략</h2>
+                        <p>해당 실험체의 스킬 콤보, 추천 루트, 운영법 공략이 추가될 예정입니다.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -168,7 +190,6 @@
     </div>
 
     <script>
-        // 데이터베이스 CSV 링크 (기존 작동하던 원본 유지)
         const TIPS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=356509267&single=true&output=csv";
         const USERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=1804712494&single=true&output=csv";
         const CHARACTERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=31606646&single=true&output=csv";
@@ -178,10 +199,18 @@
         let charactersData = [];
         let currentMyPick = "";
 
-        // 탭 전환 로직
+        // 메인 탭 전환 로직
         function switchTab(targetId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(targetId).classList.remove('hidden');
+            btnElement.classList.add('active');
+        }
+
+        // 서브 탭 전환 로직 (상대법 게시판 vs 공략 게시판)
+        function switchSubTab(targetId, btnElement) {
+            document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.sub-nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(targetId).classList.remove('hidden');
             btnElement.classList.add('active');
         }
@@ -192,7 +221,6 @@
         document.getElementById("closeModalBtn").onclick = () => modal.style.display = "none";
         window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
 
-        // CSV 파서
         function parseCSV(text) {
             let rows = [], row = [], inQuotes = false, val = '';
             for (let i = 0; i < text.length; i++) {
@@ -207,7 +235,6 @@
             return rows;
         }
 
-        // 전체 데이터 불러오기
         async function loadData() {
             try {
                 const [tipsRes, usersRes, charsRes] = await Promise.all([
@@ -250,7 +277,6 @@
             }
         }
 
-        // 캐릭터 리스트 그리기
         function renderCharacterGrid() {
             const grid = document.getElementById('characterGrid');
             grid.innerHTML = '';
@@ -268,7 +294,6 @@
             });
         }
 
-        // 상세 게시판으로 진입
         function selectCharacter(charObj) {
             currentMyPick = charObj.Character_Name;
             document.getElementById('viewCharacters').classList.add('hidden');
@@ -279,18 +304,20 @@
                 <img src="${charObj.Image_URL || ''}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'">
             `;
 
+            // 🔥 캐릭터 선택 시 항상 [상대법 게시판] 서브 탭을 기본으로 보여주도록 초기화
+            const defaultSubBtn = document.querySelector('.sub-nav-btn');
+            switchSubTab('matchupSection', defaultSubBtn);
+
             populateFilters();
             renderCards();
         }
 
-        // 뒤로 가기
         document.getElementById('backBtn').onclick = () => {
             currentMyPick = "";
             document.getElementById('viewTips').classList.add('hidden');
             document.getElementById('viewCharacters').classList.remove('hidden');
         };
 
-        // 필터 옵션 채우기
         function populateFilters() {
             const relatedTips = tipsData.filter(t => t.My_Pick === currentMyPick);
             
@@ -314,7 +341,6 @@
             document.getElementById('sortType').value = 'latest';
         }
 
-        // 추천 버튼 로직 (GAS 통신)
         async function handleUpvote(buttonElement, timestamp, currentUpvotes) {
             buttonElement.disabled = true;
             buttonElement.innerText = '⏳ 처리중...';
@@ -343,7 +369,6 @@
             }
         }
 
-        // 팁 카드 그리기 (필터링 및 정렬)
         function renderCards() {
             const myWeaponVal = document.getElementById('myWeapon').value;
             const searchVal = document.getElementById('searchEnemy').value.toLowerCase();
@@ -413,14 +438,12 @@
             });
         }
 
-        // 이벤트 리스너 연결
         document.getElementById('myWeapon').addEventListener('change', renderCards);
         document.getElementById('searchEnemy').addEventListener('input', renderCards);
         document.getElementById('enemyWeapon').addEventListener('change', renderCards);
         document.getElementById('patchVersion').addEventListener('change', renderCards);
         document.getElementById('sortType').addEventListener('change', renderCards);
 
-        // 실행
         loadData();
     </script>
 </body>
