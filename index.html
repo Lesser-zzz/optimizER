@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>observER - 카운터 상대법 및 공략 검색</title>
+    <title>OptimizER - 카운터 상대법 및 공략 검색</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -76,7 +76,7 @@
 <body>
 
     <div class="header">
-        <h1>🛡️ observER</h1>
+        <h1>🛡️ OptimizER</h1>
         <p>이터널 리턴을 정복하기 위한 모든 공략과 상성 데이터</p>
         <button id="openModalBtn" class="join-btn">💡 새로운 공략 제보 or 공략에 대한 토론/피드백을 원한다면?</button>
     </div>
@@ -173,10 +173,7 @@
         const TIPS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=356509267&single=true&output=csv";
         const USERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=1804712494&single=true&output=csv";
         const CHARACTERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=31606646&single=true&output=csv";
-        
-        // 새로 업데이트된 Guides 시트 링크 적용!
         const GUIDES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=115870514&single=true&output=csv";
-        
         const GAS_UPVOTE_URL = "https://script.google.com/macros/s/AKfycbxvo1UCwYN-OUUc66cm2SnCbw_eE8bwjwNqV2k5YEfHN31aK-31-8opOetLEkE9BAU/exec";
         
         let tipsData = [];
@@ -299,6 +296,17 @@
                 <span>${charObj.Character_Name} 공략 게시판</span>
                 <img src="${charObj.Image_URL || ''}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'">
             `;
+
+            // 🔥 Guides 시트에서 해당 실험체의 가장 최근 '한줄평' 가져오기 로직 추가
+            const charReviews = guidesData.filter(g => g.Guide_Type === '한줄평' && g.Target_Char === currentMyPick);
+            charReviews.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+            const latestReview = charReviews.length > 0 ? charReviews[0] : null;
+
+            const reviewText = latestReview 
+                ? `"${latestReview.Content}" - ✍️ <strong>${latestReview.Virtual_Nickname || '익명'}</strong> <span style="font-size:0.8em; color:#ccc;">(v${latestReview.Patch_Version || '알 수 없음'})</span>` 
+                : '"아직 등록된 랭커 한줄평이 없습니다."';
+                
+            document.getElementById('charReviewText').innerHTML = reviewText;
 
             const defaultSubBtn = document.querySelector('.sub-nav-btn');
             switchSubTab('matchupSection', defaultSubBtn);
