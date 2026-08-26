@@ -12,6 +12,39 @@
         .join-btn { background: #4a69bd; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: bold; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
         .join-btn:hover { background: #3c559c; transform: translateY(-2px); }
 
+        /* 🏆 명예의 전당 사이드바 */
+        .hall-of-fame {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            width: 260px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-top: 4px solid #f1c40f;
+            z-index: 100;
+        }
+        .hof-title { font-weight: bold; font-size: 1.1em; margin-bottom: 15px; color: #2c3e50; text-align: center; }
+        .hof-list { list-style: none; padding: 0; margin: 0; }
+        .hof-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.95em; padding-bottom: 8px; border-bottom: 1px dashed #eee; }
+        .hof-item:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .hof-rank { font-weight: bold; color: #4a69bd; width: 30px; text-align: center; }
+        .hof-name { flex: 1; font-weight: 600; color: #333; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+        .hof-score { color: #e1b12c; font-weight: bold; background: #fffdf5; padding: 3px 8px; border-radius: 12px; border: 1px solid #f9ca24; font-size: 0.85em; }
+
+        @media (max-width: 1350px) {
+            .hall-of-fame {
+                position: relative;
+                right: 0;
+                top: 0;
+                width: 100%;
+                max-width: 1000px;
+                margin: 0 auto 20px auto;
+                box-sizing: border-box;
+            }
+        }
+
         /* 3단 네비게이션 메뉴 */
         .nav-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
         .nav-btn { padding: 10px 20px; border: none; border-radius: 25px; font-size: 1em; font-weight: bold; cursor: pointer; background: #e0e0e0; color: #555; transition: 0.3s; }
@@ -81,11 +114,19 @@
         <button id="openModalBtn" class="join-btn">💡 새로운 공략 제보 or 공략에 대한 토론/피드백을 원한다면?</button>
     </div>
 
+    <!-- 🏆 명예의 전당 -->
+    <div class="hall-of-fame" id="hallOfFame">
+        <div class="hof-title">🏆 OptimizER 명예의 전당</div>
+        <ul class="hof-list" id="hofList">
+            <div style="text-align: center; color: #888; font-size: 0.9em;">집계 중...</div>
+        </ul>
+    </div>
+
     <!-- 팝업 모달 -->
     <div id="pipelineModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" id="closeModalBtn">&times;</span>
-            <h2 style="margin-top:0; color:#333;">🎉 축하합니다!</h2>
+            <h2 style="margin-top:0; color:#333;">🎉 환영합니다!</h2>
             <p style="font-size:1em; color:#4a69bd; font-weight:bold; line-height:1.5;">
                 더 나아진 사이트를 위해, 더 높은 실력을 위해 노력하는 당신은<br>
                 <span style="color:#e1b12c; font-size:1.2em;">optimizER</span>가 될 자격을 얻었습니다!
@@ -174,12 +215,14 @@
         const USERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=1804712494&single=true&output=csv";
         const CHARACTERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=31606646&single=true&output=csv";
         const GUIDES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=115870514&single=true&output=csv";
+        
         const GAS_UPVOTE_URL = "https://script.google.com/macros/s/AKfycbxvo1UCwYN-OUUc66cm2SnCbw_eE8bwjwNqV2k5YEfHN31aK-31-8opOetLEkE9BAU/exec";
         
         let tipsData = [];
         let charactersData = [];
         let guidesData = [];
         let currentMyPick = "";
+        let userMap = {}; // 🔥 글로벌 변수 처리 완료
 
         function switchTab(targetId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -226,7 +269,7 @@
 
                 const usersRaw = parseCSV(usersText);
                 const userHeaders = usersRaw[0].map(h => h.trim());
-                const userMap = {};
+                userMap = {};
                 usersRaw.slice(1).forEach(row => {
                     let obj = {};
                     row.forEach((val, i) => { if (userHeaders[i]) obj[userHeaders[i]] = val.trim(); });
@@ -265,9 +308,63 @@
                 renderGuideCards('newbieBoard', guidesData.filter(g => g.Guide_Type === '뉴비'));
                 renderGuideCards('advancedBoard', guidesData.filter(g => g.Guide_Type === '심화'));
 
+                // 🔥 명예의 전당 렌더링 호출
+                renderHallOfFame();
+
             } catch (error) {
                 document.getElementById('characterGrid').innerHTML = '<div style="color: red;">데이터를 불러오는 데 실패했습니다.</div>';
             }
+        }
+
+        function renderHallOfFame() {
+            const authorUpvotes = {};
+            
+            // 1. Tips와 Guides 시트를 모두 순회하며 닉네임별 누적 추천수(Credit) 계산
+            const aggregateUpvotes = (dataArray) => {
+                dataArray.forEach(item => {
+                    const author = item.Virtual_Nickname;
+                    if (author && author !== '익명') {
+                        authorUpvotes[author] = (authorUpvotes[author] || 0) + (Number(item.Upvotes) || 0);
+                    }
+                });
+            };
+            
+            aggregateUpvotes(tipsData);
+            aggregateUpvotes(guidesData);
+
+            // 2. 객체를 배열로 변환 후 내림차순 정렬하여 상위 5명 추출
+            const sortedAuthors = Object.keys(authorUpvotes)
+                .map(author => ({
+                    name: author,
+                    upvotes: authorUpvotes[author],
+                    tier: userMap[author] || '미인증'
+                }))
+                .filter(a => a.upvotes > 0) // 추천 수가 1 이상인 유저만 랭크인
+                .sort((a, b) => b.upvotes - a.upvotes)
+                .slice(0, 5);
+
+            const hofList = document.getElementById('hofList');
+            hofList.innerHTML = '';
+
+            if (sortedAuthors.length === 0) {
+                hofList.innerHTML = '<div style="text-align: center; color: #888; font-size: 0.9em; padding: 10px;">아직 랭크된 기여자가 없습니다.</div>';
+                return;
+            }
+
+            // 3. 순위별 HTML 렌더링
+            sortedAuthors.forEach((author, index) => {
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `<span>${index + 1}</span>`;
+                const li = document.createElement('li');
+                li.className = 'hof-item';
+                li.innerHTML = `
+                    <span class="hof-rank">${medal}</span>
+                    <span class="hof-name">
+                        ${author.name} <span class="tier-badge" style="font-size:0.7em; padding:2px 5px;">${author.tier}</span>
+                    </span>
+                    <span class="hof-score">👍 ${author.upvotes}</span>
+                `;
+                hofList.appendChild(li);
+            });
         }
 
         function renderCharacterGrid() {
@@ -369,6 +466,10 @@
                         const guide = guidesData.find(g => g.Timestamp === timestamp);
                         if(guide) guide.Upvotes = newUpvotes;
                     }
+                    
+                    // 추천 시 명예의 전당 점수도 즉각 반영을 원한다면 렌더링 재호출
+                    renderHallOfFame();
+                    
                 } else {
                     alert('추천 처리 중 문제가 발생했습니다.');
                     buttonElement.disabled = false;
