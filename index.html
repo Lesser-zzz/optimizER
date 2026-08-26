@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OptimizER - 카운터 상대법 및 공략 검색</title>
+    <title>observER - 카운터 상대법 및 공략 검색</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .header { text-align: center; margin-bottom: 20px; }
@@ -76,7 +76,7 @@
 <body>
 
     <div class="header">
-        <h1>🛡️ OptimizER</h1>
+        <h1>🛡️ observER</h1>
         <p>이터널 리턴을 정복하기 위한 모든 공략과 상성 데이터</p>
         <button id="openModalBtn" class="join-btn">💡 새로운 공략 제보 or 공략에 대한 토론/피드백을 원한다면?</button>
     </div>
@@ -117,7 +117,6 @@
     <div id="viewTab1" class="tab-content">
         <!-- 메인 화면: 실험체 선택 -->
         <div id="viewCharacters">
-            <!-- 기존의 안내 텍스트(H2) 삭제 완료 -->
             <div class="character-grid" id="characterGrid">
                 <div style="text-align: center; color: #888; grid-column: 1 / -1;">데이터를 불러오는 중입니다...</div>
             </div>
@@ -136,7 +135,7 @@
                 <span class="review-content" id="charReviewText">"아직 등록된 랭커 한줄평이 없습니다."</span>
             </div>
 
-            <!-- 🔥 서브 네비게이션 탭 (해당 실험체의 상대법 vs 공략) -->
+            <!-- 🔥 서브 네비게이션 탭 (상대법 vs 공략) -->
             <div class="sub-nav-menu">
                 <button class="sub-nav-btn active" onclick="switchSubTab('matchupSection', this)">⚔️ 상대법 게시판</button>
                 <button class="sub-nav-btn" onclick="switchSubTab('guideSection', this)">📜 공략 게시판</button>
