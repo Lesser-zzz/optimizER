@@ -3,359 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OptimizER - 카운터 상대법 검색</title>
+    <title>OptimizER - 이터널 리턴 공략 뷰어</title>
     <style>
         body { font-family: 'Pretendard', sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .header { text-align: center; margin-bottom: 20px; }
         .header h1 { margin-bottom: 5px; }
-        
         .join-btn { background: #4a69bd; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: bold; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
-        .join-btn:hover { background: #3c559c; transform: translateY(-2px); }
+        
+        /* 3단 네비게이션 메뉴 */
+        .nav-menu { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        .nav-btn { padding: 12px 25px; border: none; border-radius: 25px; font-size: 1.05em; font-weight: bold; cursor: pointer; background: #e0e0e0; color: #555; transition: 0.3s; }
+        .nav-btn.active { background: #3c559c; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 
         .hidden { display: none !important; }
 
+        /* --- 뷰 1: 캐릭터 선택 그리드 --- */
         .character-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; max-width: 1000px; margin: 0 auto; }
-        .char-card { background: white; padding: 15px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-        .char-card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); border: 1px solid #4a69bd; }
+        .char-card { background: white; padding: 15px 10px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; cursor: pointer; }
         .char-image { width: 70px; height: 70px; object-fit: cover; border-radius: 35px; margin-bottom: 10px; border: 2px solid #eee; }
         .char-name { font-weight: bold; color: #333; font-size: 0.95em; }
 
-        .selected-char-header { max-width: 800px; margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .selected-char-info { display: flex; align-items: center; gap: 15px; font-size: 1.2em; font-weight: bold; color: #333; }
-        .selected-char-info img { width: 50px; height: 50px; border-radius: 25px; object-fit: cover; border: 2px solid #4a69bd; }
-        .back-btn { background: #7f8fa6; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .back-btn:hover { background: #718093; }
-
-        .filter-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-container input, .filter-container select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; outline: none; font-family: inherit; }
+        /* --- 뷰 2: 팁 게시판 --- */
+        .selected-char-header { max-width: 800px; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .back-btn { background: #7f8fa6; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
+        /* 🔥 최상위 랭커 한줄평 UI */
+        .one-line-review { max-width: 800px; margin: 0 auto 20px auto; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 8px; border-left: 4px solid #f1c40f; }
+        .review-badge { font-size: 0.8em; background: #f1c40f; color: #333; padding: 3px 8px; border-radius: 4px; font-weight: bold; align-self: flex-start; }
+        .review-content { font-size: 1.1em; font-weight: 500; font-style: italic; }
+
         .tips-board { display: flex; flex-direction: column; gap: 15px; max-width: 800px; margin: 0 auto; }
-        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-        .card-header { font-weight: bold; margin-bottom: 5px; color: #333; font-size: 1.1em; display: flex; align-items: center; justify-content: space-between; }
-        
-        .author-info { font-size: 0.9em; color: #444; margin-bottom: 12px; display: flex; align-items: center; }
-        .tier-badge { background-color: #2bcbba; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.85em; margin-left: 8px; font-weight: bold; }
-        
-        .card-body { margin-bottom: 15px; line-height: 1.6; color: #555; background: #fafafa; padding: 10px; border-radius: 5px; border-left: 3px solid #4a69bd; }
-        .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; color: #888; }
-        
-        .upvote-btn { background: #ff4757; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .upvote-btn:hover { background: #ff6b81; }
-        .upvote-btn:disabled { background: #ced6e0; cursor: not-allowed; color: #747d8c; }
-        .upvote-btn.voted { background: #2ed573; cursor: not-allowed; }
-
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
-        .modal-content { background-color: #fff; margin: 10% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; position: relative; line-height: 1.6; }
-        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 24px; font-weight: bold; cursor: pointer; color: #aaa; }
-        .step-box { background: #f8f9fa; border-left: 4px solid #4a69bd; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        .step-box h3 { margin: 0 0 10px 0; font-size: 1.1em; color: #333; }
-        .step-box p { margin: 0 0 10px 0; font-size: 0.9em; color: #666; }
-        .link-btn { display: inline-block; text-decoration: none; background: #e1b12c; color: white; padding: 8px 12px; border-radius: 5px; font-size: 0.9em; font-weight: bold; }
-        .discord-btn { background: #7289da; }
-        .form2-btn { background: #4cd137; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🛡️ OptimizER</h1>
-        <p>상대 실험체를 검색하고 맞춤형 카운터 팁을 확인하세요.</p>
-        <button id="openModalBtn" class="join-btn">💡 새로운 공략 제보 or 공략에 대한 토론/피드백을 원한다면?</button>
+        <p>이터널 리턴을 정복하기 위한 모든 공략과 상성 데이터</p>
+        <button id="openModalBtn" class="join-btn">💡 팁 제보 및 커뮤니티 합류하기</button>
     </div>
 
-    <div id="pipelineModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeModalBtn">&times;</span>
-            <h2 style="margin-top:0; color:#333;">🚀 OptimizER 생태계 합류</h2>
-            <p style="font-size:0.9em; color:#e84118; font-weight:bold;">※ 친목/저격 방지를 위해 인게임 정보는 완벽히 차단됩니다.</p>
-            <div class="step-box">
-                <h3>Step 1. 가상 닉네임 등록</h3>
-                <a href="https://forms.gle/FZuCD2oht5GPcPh38" target="_blank" class="link-btn">👉 Form 1 (닉네임 등록) 가기</a>
-            </div>
-            <div class="step-box">
-                <h3>Step 2. 디스코드 입장 및 티어 인증</h3>
-                <a href="https://discord.gg/QsT2tkJG9N" target="_blank" class="link-btn discord-btn">👉 공식 디스코드 입장하기</a>
-            </div>
-            <div class="step-box">
-                <h3>Step 3. 맞춤형 공략 제보하기</h3>
-                <a href="https://forms.gle/yCMcFN6UAE4F58D48" target="_blank" class="link-btn form2-btn">👉 Form 2 (공략 제보) 가기</a>
-            </div>
-        </div>
+    <!-- 네비게이션 탭 -->
+    <div class="nav-menu">
+        <button class="nav-btn active" onclick="switchTab('viewCharacters', this)">⚔️ 상대법 검색</button>
+        <button class="nav-btn" onclick="switchTab('viewNewbie', this)">🌱 뉴비 추천 공략</button>
+        <button class="nav-btn" onclick="switchTab('viewAdvanced', this)">👑 최상위 심화 공략</button>
     </div>
 
-    <div id="viewCharacters">
-        <h2 style="text-align:center; color:#333; margin-bottom: 20px;">어떤 실험체의 공략을 찾으시나요?</h2>
+    <!-- 탭 1: 상대법 메인 (캐릭터 선택) -->
+    <div id="viewCharacters" class="tab-content">
         <div class="character-grid" id="characterGrid">
-            <div style="text-align: center; color: #888; grid-column: 1 / -1;">데이터를 불러오는 중입니다...</div>
+            <!-- 자바스크립트로 캐릭터 카드가 렌더링됨 -->
         </div>
     </div>
 
+    <!-- 탭 2: 뉴비 공략 게시판 (임시) -->
+    <div id="viewNewbie" class="tab-content hidden">
+        <div class="tips-board">
+            <div class="card" style="text-align: center; color: #888; padding: 40px;">
+                <h2>🌱 뉴비를 위한 기초 가이드</h2>
+                <p>루트 추천, 스킬 빌드, 대체 아이템 공략이 추가될 예정입니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 탭 3: 최상위 심화 공략 게시판 (임시) -->
+    <div id="viewAdvanced" class="tab-content hidden">
+        <div class="tips-board">
+            <div class="card" style="text-align: center; color: #888; padding: 40px;">
+                <h2>👑 최상위 랭커 심화 전략노트</h2>
+                <p>게임 운영, 매판 체크리스트, 교전 디테일 공략이 추가될 예정입니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 캐릭터 상세 상대법 뷰 (숨김) -->
     <div id="viewTips" class="hidden">
         <div class="selected-char-header">
-            <button id="backBtn" class="back-btn">← 다른 실험체 고르기</button>
-            <div class="selected-char-info" id="selectedCharInfo"></div>
+            <button class="back-btn" onclick="switchTab('viewCharacters', document.querySelector('.nav-btn'))">← 뒤로 가기</button>
+            <strong id="selectedCharInfo" style="font-size: 1.2em;">선택된 실험체</strong>
         </div>
 
-        <div class="filter-container">
-            <select id="myWeapon"><option value="">내 무기 전체</option></select>
-            <input type="text" id="searchEnemy" placeholder="상대 실험체 검색 (예: 수아)">
-            <select id="enemyWeapon"><option value="">상대 무기 전체</option></select>
-            <!-- 정렬 및 패치 버전 드롭다운 추가 -->
-            <select id="patchVersion"><option value="">패치 전체</option></select>
-            <select id="sortType">
-                <option value="latest">✨ 최신순</option>
-                <option value="upvotes">🔥 추천순</option>
-            </select>
+        <!-- 🔥 한줄평 자리 추가 -->
+        <div class="one-line-review">
+            <span class="review-badge">👑 이터니티/데미갓 전용 한줄평</span>
+            <span class="review-content" id="charReviewText">"아직 등록된 랭커 한줄평이 없습니다."</span>
         </div>
 
-        <div class="tips-board" id="tipsBoard"></div>
+        <div class="tips-board" id="tipsBoard">
+            <!-- 팁 카드가 렌더링됨 -->
+        </div>
     </div>
 
     <script>
-        const TIPS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=356509267&single=true&output=csv";
-        const USERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=1804712494&single=true&output=csv";
-        const CHARACTERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT5_DQLpJ8LsyBJtWAsl_BI5-KsXvfCTf5fvf5kX4XzFQHiMDKARvDyuOFlW6b2w563mHC_8s90w2E6/pub?gid=31606646&single=true&output=csv";
-        const GAS_UPVOTE_URL = "https://script.google.com/macros/s/AKfycbxvo1UCwYN-OUUc66cm2SnCbw_eE8bwjwNqV2k5YEfHN31aK-31-8opOetLEkE9BAU/exec";
-        
-        let tipsData = [];
-        let charactersData = [];
-        let currentMyPick = "";
-
-        const modal = document.getElementById("pipelineModal");
-        document.getElementById("openModalBtn").onclick = () => modal.style.display = "block";
-        document.getElementById("closeModalBtn").onclick = () => modal.style.display = "none";
-        window.onclick = (e) => { if (e.target == modal) modal.style.display = "none"; }
-
-        function parseCSV(text) {
-            let rows = [], row = [], inQuotes = false, val = '';
-            for (let i = 0; i < text.length; i++) {
-                let char = text[i];
-                if (char === '"' && text[i+1] === '"') { val += '"'; i++; }
-                else if (char === '"') { inQuotes = !inQuotes; }
-                else if (char === ',' && !inQuotes) { row.push(val); val = ''; }
-                else if (char === '\n' && !inQuotes) { row.push(val); rows.push(row); row = []; val = ''; }
-                else { val += char; }
-            }
-            row.push(val); rows.push(row);
-            return rows;
-        }
-
-        async function loadData() {
-            try {
-                const [tipsRes, usersRes, charsRes] = await Promise.all([
-                    fetch(TIPS_CSV_URL), fetch(USERS_CSV_URL), fetch(CHARACTERS_CSV_URL)
-                ]);
-
-                const [tipsText, usersText, charsText] = await Promise.all([
-                    tipsRes.text(), usersRes.text(), charsRes.text()
-                ]);
-
-                const usersRaw = parseCSV(usersText);
-                const userHeaders = usersRaw[0].map(h => h.trim());
-                const userMap = {};
-                usersRaw.slice(1).forEach(row => {
-                    let obj = {};
-                    row.forEach((val, i) => { if (userHeaders[i]) obj[userHeaders[i]] = val.trim(); });
-                    if (obj.Virtual_Nickname) userMap[obj.Virtual_Nickname] = obj.Tier; 
-                });
-
-                const tipsRaw = parseCSV(tipsText);
-                const tipsHeaders = tipsRaw[0].map(h => h.trim());
-                tipsData = tipsRaw.slice(1).map(row => {
-                    let obj = {};
-                    row.forEach((val, i) => { if (tipsHeaders[i]) obj[tipsHeaders[i]] = val.trim(); });
-                    obj.Tier = userMap[obj.Virtual_Nickname] || '미인증'; 
-                    return obj;
-                }).filter(tip => tip.My_Pick); 
-
-                const charsRaw = parseCSV(charsText);
-                const charsHeaders = charsRaw[0].map(h => h.trim());
-                charactersData = charsRaw.slice(1).map(row => {
-                    let obj = {};
-                    row.forEach((val, i) => { if (charsHeaders[i]) obj[charsHeaders[i]] = val.trim(); });
-                    return obj;
-                }).filter(c => c.Character_Name);
-
-                renderCharacterGrid();
-
-            } catch (error) {
-                document.getElementById('characterGrid').innerHTML = '<div style="color: red;">데이터를 불러오는 데 실패했습니다.</div>';
-            }
-        }
-
-        function renderCharacterGrid() {
-            const grid = document.getElementById('characterGrid');
-            grid.innerHTML = '';
-            charactersData.sort((a, b) => a.Character_Name.localeCompare(b.Character_Name));
-
-            charactersData.forEach(char => {
-                const card = document.createElement('div');
-                card.className = 'char-card';
-                card.onclick = () => selectCharacter(char);
-                card.innerHTML = `
-                    <img src="${char.Image_URL || ''}" class="char-image" onerror="this.src='https://via.placeholder.com/70?text=No+Img'">
-                    <div class="char-name">${char.Character_Name}</div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function selectCharacter(charObj) {
-            currentMyPick = charObj.Character_Name;
-            document.getElementById('viewCharacters').classList.add('hidden');
-            document.getElementById('viewTips').classList.remove('hidden');
-
-            document.getElementById('selectedCharInfo').innerHTML = `
-                <span>${charObj.Character_Name} 공략 게시판</span>
-                <img src="${charObj.Image_URL || ''}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'">
-            `;
-
-            populateFilters();
-            renderCards();
-        }
-
-        document.getElementById('backBtn').onclick = () => {
-            currentMyPick = "";
+        // 탭 전환 로직 (SPA)
+        function switchTab(targetId, btnElement) {
+            // 모든 뷰 숨기기
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById('viewTips').classList.add('hidden');
-            document.getElementById('viewCharacters').classList.remove('hidden');
-        };
-
-        function populateFilters() {
-            const relatedTips = tipsData.filter(t => t.My_Pick === currentMyPick);
             
-            const myWeapons = [...new Set(relatedTips.map(t => t.My_Weapon).filter(Boolean))].sort();
-            const enemyWeapons = [...new Set(relatedTips.map(t => t.Enemy_Weapon).filter(Boolean))].sort();
+            // 네비게이션 버튼 색상 초기화
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             
-            // 패치 버전 데이터 추출 및 정렬 (최신 패치가 위로 오도록 역순 정렬)
-            const patchVersions = [...new Set(relatedTips.map(t => t.Patch_Version).filter(Boolean))].sort((a, b) => b.localeCompare(a));
-            
-            const myWeaponSelect = document.getElementById('myWeapon');
-            myWeaponSelect.innerHTML = '<option value="">내 무기 전체</option>';
-            myWeapons.forEach(w => myWeaponSelect.add(new Option(w, w)));
-            
-            const enemyWeaponSelect = document.getElementById('enemyWeapon');
-            enemyWeaponSelect.innerHTML = '<option value="">상대 무기 전체</option>';
-            enemyWeapons.forEach(w => enemyWeaponSelect.add(new Option(w, w)));
-            
-            const patchSelect = document.getElementById('patchVersion');
-            patchSelect.innerHTML = '<option value="">패치 전체</option>';
-            patchVersions.forEach(v => patchSelect.add(new Option(v, v)));
-            
-            document.getElementById('searchEnemy').value = '';
-            document.getElementById('sortType').value = 'latest';
+            // 선택한 뷰와 버튼 활성화
+            document.getElementById(targetId).classList.remove('hidden');
+            if (btnElement) btnElement.classList.add('active');
         }
 
-        async function handleUpvote(buttonElement, timestamp, currentUpvotes) {
-            buttonElement.disabled = true;
-            buttonElement.innerText = '⏳ 처리중...';
-
-            try {
-                const response = await fetch(`${GAS_UPVOTE_URL}?id=${encodeURIComponent(timestamp)}`);
-                const result = await response.text();
-
-                if (result === "성공") {
-                    localStorage.setItem('upvoted_' + timestamp, 'true');
-                    const newUpvotes = Number(currentUpvotes) + 1;
-                    buttonElement.innerText = `👍 추천 완료 ${newUpvotes}`;
-                    buttonElement.classList.add('voted');
-                    
-                    const tip = tipsData.find(t => t.Timestamp === timestamp);
-                    if(tip) tip.Upvotes = newUpvotes;
-                } else {
-                    alert('추천 처리 중 문제가 발생했습니다.');
-                    buttonElement.disabled = false;
-                    buttonElement.innerText = `👍 추천 ${currentUpvotes}`;
-                }
-            } catch (error) {
-                alert('네트워크 오류가 발생했습니다.');
-                buttonElement.disabled = false;
-                buttonElement.innerText = `👍 추천 ${currentUpvotes}`;
-            }
-        }
-
-        function renderCards() {
-            const myWeaponVal = document.getElementById('myWeapon').value;
-            const searchVal = document.getElementById('searchEnemy').value.toLowerCase();
-            const enemyWeaponVal = document.getElementById('enemyWeapon').value;
-            const patchVal = document.getElementById('patchVersion').value;
-            const sortType = document.getElementById('sortType').value;
-            
-            // 1. 조건에 맞게 필터링
-            let filtered = tipsData.filter(tip => {
-                if (tip.My_Pick !== currentMyPick) return false;
-                const matchMyWeapon = !myWeaponVal || tip.My_Weapon === myWeaponVal;
-                const matchEnemy = tip.Enemy_Pick && tip.Enemy_Pick.toLowerCase().includes(searchVal);
-                const matchEnemyWeapon = !enemyWeaponVal || tip.Enemy_Weapon === enemyWeaponVal;
-                const matchPatch = !patchVal || tip.Patch_Version === patchVal;
-                return matchMyWeapon && matchEnemy && matchEnemyWeapon && matchPatch;
-            });
-            
-            // 2. 정렬 (Sort) 적용
-            filtered.sort((a, b) => {
-                if (sortType === 'upvotes') {
-                    // 추천순: 숫자가 높은 순서대로
-                    return (Number(b.Upvotes) || 0) - (Number(a.Upvotes) || 0);
-                } else {
-                    // 최신순: 타임스탬프 기준 역순 (최신 시간이 위로)
-                    return new Date(b.Timestamp) - new Date(a.Timestamp);
-                }
-            });
-            
-            const board = document.getElementById('tipsBoard');
-            board.innerHTML = '';
-            
-            if (filtered.length === 0) {
-                board.innerHTML = '<div style="text-align:center; padding: 20px; color: #888;">조건에 맞는 공략이 없습니다. 첫 번째 공략의 주인공이 되어주세요!</div>';
-                return;
-            }
-            
-            filtered.forEach(tip => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                
-                const myText = (tip.My_Weapon ? tip.My_Weapon + ' ' : '') + tip.My_Pick;
-                const enemyText = (tip.Enemy_Weapon ? tip.Enemy_Weapon + ' ' : '') + (tip.Enemy_Pick || '알 수 없음');
-                const authorName = tip.Virtual_Nickname || '익명의 실험체';
-
-                const isVoted = localStorage.getItem('upvoted_' + tip.Timestamp);
-                const btnClass = isVoted ? 'upvote-btn voted' : 'upvote-btn';
-                const btnDisabled = isVoted ? 'disabled' : '';
-                const btnText = isVoted ? `👍 추천 완료 ${tip.Upvotes || 0}` : `👍 추천 ${tip.Upvotes || 0}`;
-
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span>[${myText}] vs [${enemyText}]</span>
-                    </div>
-                    <div class="author-info">
-                        ✍️ <strong>${authorName}</strong> 
-                        <span class="tier-badge">${tip.Tier}</span>
-                    </div>
-                    <div class="card-body">${(tip.Tip_Content || '').replace(/\n/g, '<br>')}</div>
-                    <div class="card-footer">
-                        <span>패치: ${tip.Patch_Version || '알 수 없음'}</span>
-                        <button class="${btnClass}" ${btnDisabled}>${btnText}</button>
-                    </div>
-                `;
-                
-                const upvoteBtn = card.querySelector('button');
-                if (!isVoted) {
-                    upvoteBtn.onclick = () => handleUpvote(upvoteBtn, tip.Timestamp, tip.Upvotes || 0);
-                }
-                
-                board.appendChild(card);
-            });
-        }
-
-        // 새롭게 추가된 정렬/필터 이벤트 리스너 연결
-        document.getElementById('myWeapon').addEventListener('change', renderCards);
-        document.getElementById('searchEnemy').addEventListener('input', renderCards);
-        document.getElementById('enemyWeapon').addEventListener('change', renderCards);
-        document.getElementById('patchVersion').addEventListener('change', renderCards);
-        document.getElementById('sortType').addEventListener('change', renderCards);
-
-        loadData();
+        // 임시 더미 데이터로 캐릭터 그리드 그리기 (테스트용)
+        const grid = document.getElementById('characterGrid');
+        const dummyChars = ['매그너스', '수아', '현우'];
+        dummyChars.forEach(char => {
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            card.innerHTML = `<div class="char-image" style="background:#ddd; margin:0 auto;"></div><div class="char-name">${char}</div>`;
+            card.onclick = () => {
+                document.getElementById('viewCharacters').classList.add('hidden');
+                document.getElementById('viewTips').classList.remove('hidden');
+                document.getElementById('selectedCharInfo').innerText = char + " 공략 게시판";
+            };
+            grid.appendChild(card);
+        });
     </script>
 </body>
 </html>
-
-<!-- 배포 강제 갱신 -->
